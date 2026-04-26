@@ -1,0 +1,11 @@
+# Minimal Python package requirements for xray-detect.py
+# Adjust versions as needed for your environment / GPU support
+opencv-python>=4.5.5
+numpy<2
+mss>=6.1.0
+ultralytics>=8.0.0
+PyQt6>=6.5
+torch>=2.0.0
+
+# Optional (use if needed/desired):
+# torchvision>=0.15.0
