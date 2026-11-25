@@ -1,19 +1,18 @@
 <div align="center">
 
-# 🛡️ SecurAI — X-Ray Otonom Tehdit Algılama
+# 🚔 X-Ray Polisi — Tehlikeli Madde Algılama
 
-**X-ray tarama görüntülerindeki tehlikeli nesneleri gerçek zamanlı tespit eden, takip eden ve kayıt altına alan masaüstü uygulaması.**
+**X-ray tarama ekranındaki tehlikeli nesneleri gerçek zamanlı bulan, takip eden ve kanıtıyla kaydeden masaüstü uygulaması.**
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10–3.12-3776AB?logo=python&logoColor=white)
 ![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-00FFFF?logo=yolo&logoColor=black)
 ![PyTorch](https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?logo=pytorch&logoColor=white)
-![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?logo=opencv&logoColor=white)
 ![PyQt6](https://img.shields.io/badge/PyQt6-41CD52?logo=qt&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-<img src="assets/demo.gif" alt="SecurAI canlı demo" width="640">
+<img src="assets/arayuz.jpg" alt="X-Ray Polisi arayüzü" width="820">
 
-<sub>Canlı demo: model, bagaj görüntüsündeki nesneleri tespit edip her birine takip kimliği (ID) atıyor. <a href="model_%C3%A7%C4%B1kt%C4%B1s%C4%B1.mp4">Tam videoyu (MP4, sesli) indir</a></sub>
+<sub>Panel sağda; tarama alanındaki silah kırmızı kutuyla işaretli. İlk sürümün demosu: <a href="assets/demo.gif">GIF</a> · <a href="model_%C3%A7%C4%B1kt%C4%B1s%C4%B1.mp4">MP4</a></sub>
 
 </div>
 
@@ -21,57 +20,66 @@
 
 ## Ne yapar?
 
-Bir x-ray cihazının ekran görüntüsü başka bir yazılımda ya da donanımda açık olsa bile SecurAI ekranı doğrudan yakalar, YOLOv8 ile analiz eder ve sonucu **ekranın üstüne saydam bir katman** olarak çizer. Cihaza ya da yazılıma entegrasyon gerekmez.
+X-ray cihazının görüntüsü başka bir yazılımda açık olsa bile X-Ray Polisi ekranı yakalar, YOLOv8 ile analiz eder ve sonucu ekranın üstüne saydam bir katman olarak çizer. Cihaza ya da yazılıma entegrasyon gerekmez.
 
-- 🎯 **12 tehlikeli nesne sınıfı** tespit eder
-- 🔁 **Nesne takibi:** aynı nesne kareler boyunca tek ID ile izlenir, aynı nesne için tekrar alarm üretilmez
-- 🗂️ **Canlı kayıt paneli:** yeni bir nesne görüldüğü anda kırpılmış görüntüsü, güven skoru ve saatiyle sağ panele düşer
-- 💾 **Kanıt arşivi:** her yeni tespit `XRay_Ultra_Log/` klasörüne JPEG olarak kaydedilir
-- 🔍 **Yüksek çözünürlüklü analiz:** küçük ve üst üste binmiş nesneler için 1280 px girdi boyutu
-- 🖥️ **Çoklu ekran / DPI uyumu:** Windows ölçeklendirmesi (%125, %150) için koordinat düzeltmesi
-
-### Tespit edilen sınıflar
-
-| | | | |
-|---|---|---|---|
-| 🔫 Gun | 🔪 Knife | ✂️ Scissors | 🔨 Hammer |
-| 🔧 Wrench | 🗜️ Plier | 🏏 Baton | ⛓️ HandCuffs |
-| 🔋 Powerbank | 💥 Bullet | 🧴 Sprayer | 🔥 Lighter |
+- 🎯 **12 sınıf:** Silah, Mermi, Bıçak, Cop, Kelepçe, Makas, Çekiç, Sprey, Çakmak, İngiliz anahtarı, Pense, Powerbank.
+- 🚦 **Önem derecesi:** yüksek (kırmızı), orta (turuncu), düşük (mavi). Kutu, kart ve alarm rengi buna göre değişir.
+- 🔁 **Tek nesne, tek alarm:** takipçi nesneyi kaybedip yeni ID verse de aynı nesne yeniden alarm üretmez.
+- ⌖ **Tarama alanı seçimi:** yalnız X-ray görüntüsünü tarar; diğer pencereler yanlış alarm üretmez.
+- 🗂️ **Canlı akış:** her yeni tespit kırpılmış görüntü, güven skoru ve saatle panele düşer. Karta tıklayınca kanıt açılır.
+- 💾 **Kanıt arşivi:** gün klasörlerine JPEG + `olaylar.csv` (Excel'de açılır).
+- 🔊 **Sesli alarm:** yüksek ve orta önemli tespitte.
+- 🖥️ **Çoklu ekran ve DPI:** ekran seçilebilir; Windows ölçeği (%125, %150) doğru hesaplanır.
 
 ## Nasıl çalışır?
 
 ```mermaid
 flowchart LR
-    A[Ekran yakalama<br/>MSS] --> B[YOLOv8s<br/>tespit + takip<br/>1280 px]
-    B --> C[Saydam overlay<br/>PyQt6 kutu + etiket]
-    B --> D{Yeni ID mi?}
-    D -- evet --> E[Sağ panel<br/>önizleme + güven skoru]
-    D -- evet --> F[XRay_Ultra_Log/<br/>JPEG kanıt]
+    A[Ekran yakalama<br/>mss, seçili alan] --> B[YOLOv8s<br/>tespit + ByteTrack]
+    B --> C[Alarm tekrarı bastırma<br/>sınıf + IoU + süre]
+    C --> D[Saydam overlay]
+    C -- yeni alarm --> E[Panel kartı + ses]
+    C -- yeni alarm --> F[XRay_Ultra_Log/gün/<br/>JPEG + olaylar.csv]
 ```
 
-Her ~60 ms'de bir kare alınır (yaklaşık 16 FPS hedefi). Sağ panel işleme alanının dışında tutulur, böylece panelin kendisi modele girmez.
+- Yakalama ve model ayrı iş parçacığında koşar; arayüz donmaz.
+- Overlay ve panel Windows yakalamasından gizlenir (`WDA_EXCLUDEFROMCAPTURE`). Böylece çizilen kutular bir sonraki karede modele girmez.
+- Ekran okunamazsa (kilit ekranı, UAC) uygulama çökmez; artan aralıklarla yeniden dener ve panelde **HATA** gösterir.
 
 ## Model
 
 | | |
 |---|---|
 | Mimari | YOLOv8s (Ultralytics) |
-| Sınıf sayısı | 12 |
-| Eğitim | 50 epoch, Kaggle ortamı (`yolov8s.pt` üzerinden fine-tune) |
-| Çıkarım girdi boyutu | 1280 px |
-| Güven eşiği | 0.35 (`CONF_THRESHOLD`) |
-| Dosyalar | `best.pt` (en iyi ağırlık), `last.pt` (son epoch) |
+| Eğitim | 50 epoch, 640 px, Kaggle (`yolov8s.pt` üzerinden ince ayar) |
+| Doğrulama | mAP50 **0.942** · mAP50-95 **0.804** · precision 0.946 · recall 0.888 |
+| Dosya | `best.pt` |
+| Hız (1280 px) | RTX 5070 Ti ~22 ms/kare · CPU ~350 ms/kare |
+
+Yeniden eğitmek için: `python train.py --data veri.yaml`
 
 ## Kurulum
 
 ```powershell
-git clone https://github.com/ahmetkc58/X-RAY-Tehlikeli-Madde-Algilama.git
+git clone https://github.com/rose-omer/X-RAY-Tehlikeli-Madde-Algilama.git
 cd X-RAY-Tehlikeli-Madde-Algilama
-
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
+```
+
+GPU varsa önce CUDA'lı PyTorch'u kurun (yoksa bu adımı atlayın):
+
+```powershell
+# RTX 50 serisi (Blackwell) ve güncel kartlar: CUDA 12.8
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+```
+
+Sonra diğer bağımlılıklar:
+
+```powershell
 pip install -r requirements.txt
+python -c "import torch; print(torch.cuda.is_available())"
 ```
 
 ## Çalıştırma
@@ -80,57 +88,78 @@ pip install -r requirements.txt
 python xray-detect.py
 ```
 
-İlk açılışta model yüklenirken 20-30 saniye beklemek normaldir. Uygulama ana monitörü yakalar. Tarama görüntüsünü bu monitörde açık tutman yeterlidir.
+1. Panel ekranın sağına yerleşir. Model yüklenince durum **AKTİF** olur.
+2. **Alan seç** ile yalnız X-ray görüntüsünü çizin. **⛶** tüm ekrana döner.
+3. Tespitler ekranda kutu, panelde kart olarak görünür.
+
+| Kısayol | İş |
+|---|---|
+| `Ctrl+P` | Duraklat / sürdür |
+| `Ctrl+R` | Tarama alanı seç |
+| `Ctrl+Q` | Çıkış |
+
+Panelden değişen ayarlar (ekran, güven eşiği, girdi boyutu, ses) bir sonraki açılışta hatırlanır.
 
 ### Ayarlar
 
-[`xray-detect.py`](xray-detect.py) dosyasının başındaki sabitlerle değiştirilir:
+[`xray_polisi/config.py`](xray_polisi/config.py) içindeki sabitler:
 
 | Sabit | Varsayılan | Açıklama |
 |---|---|---|
-| `MODEL_PATH` | `best.pt` | Kullanılacak ağırlık dosyası |
+| `MODEL_PATH` | `best.pt` | Ağırlık dosyası |
 | `CONF_THRESHOLD` | `0.35` | Düşük değer daha çok tespit, daha çok yanlış alarm |
-| `IMG_SIZE` | `1280` | Yüksek değer küçük nesnelerde daha iyi, ama daha yavaş |
-| `LOG_FOLDER` | `XRay_Ultra_Log` | Kırpılmış tespit görüntülerinin kaydedileceği klasör |
-| `PANEL_WIDTH` | `360` | Sağ panel genişliği (px) |
+| `IMG_SIZE` | `1280` | Model 640 ile eğitildi; 1280 küçük nesnede daha çok buluyor ama daha yavaş |
+| `DEDUP_IOU` / `DEDUP_TTL_S` | `0.3` / `10` | Aynı nesne sayılma örtüşmesi ve unutma süresi |
+| `PANEL_WIDTH` | `380` | Panel genişliği (mantıksal px) |
+| `MAX_FEED_ITEMS` | `150` | Panelde tutulan en çok kart |
+| `LOG_DIR` | `XRay_Ultra_Log` | Kanıt klasörü |
 
-### GPU (opsiyonel)
+Demo videosu çekerken overlay'in kayda girmesi için: `$env:XRAY_POLISI_SHOW_IN_CAPTURE = "1"`. Bu modda model de kutuları görür; yalnız tanıtım için kullanın.
 
-NVIDIA GPU varsa CUDA destekli PyTorch kurmak hızı belirgin şekilde artırır. CUDA 12.1 için:
+## Testler
 
 ```powershell
-pip install --upgrade --index-url https://download.pytorch.org/whl/cu121 torch torchvision
-python -c "import torch; print(torch.cuda.is_available(), torch.version.cuda)"
+python -m pytest
 ```
 
-## Sorun giderme
-
-- **NumPy 2.x uyumsuzluğu:** `pip install "numpy<2"`
-- **Kutular gecikiyor / FPS düşük:** `IMG_SIZE` değerini 960 veya 640'a indir, ya da GPU kur.
-- **Çok fazla yanlış alarm:** `CONF_THRESHOLD` değerini 0.5 civarına çıkar.
+Koordinat dönüşümü (DPI), alarm tekrarı bastırma, kırpma ve CSV günlüğü için birim testleri.
 
 ## Proje yapısı
 
 ```
-├── xray-detect.py        # Ana uygulama (yakalama, tespit, overlay, panel)
-├── best.pt / last.pt     # Eğitilmiş YOLOv8s ağırlıkları
-├── requirements.txt
-├── model_çıktısı.mp4     # Tam demo videosu
-└── assets/               # README görselleri
+├── xray-detect.py          # Başlatıcı
+├── xray_polisi/
+│   ├── config.py           # Ayarlar, sınıf adları ve önem dereceleri
+│   ├── logic.py            # Saf mantık: DPI eşleme, alarm tekrarı, kayıt yolu, CSV
+│   ├── worker.py           # Yakalama + model döngüsü (QThread)
+│   ├── winapi.py           # Yakalamadan gizleme, sistem sesi
+│   ├── app.py              # Pencereleri ve iş parçacığını bağlar
+│   └── ui/                 # Panel, overlay, alan seçici, tema, simgeler
+├── tests/                  # pytest
+├── train.py                # Eğitim betiği
+├── best.pt                 # Eğitilmiş ağırlık
+└── assets/                 # README görselleri
 ```
+
+## Sorun giderme
+
+- **Kutular gecikiyor / FPS düşük:** panelden girdi boyutunu 960 ya da 640 yapın; GPU kurun.
+- **Çok yanlış alarm:** güven eşiğini %50 civarına çıkarın; **Alan seç** ile yalnız X-ray görüntüsünü tarayın.
+- **Panel HATA gösteriyor:** ekran kilitli ya da UAC açık olabilir; uygulama kendiliğinden yeniden dener. Ayrıntı: `XRay_Ultra_Log/xray_polisi.log`.
+- **Overlay kayda giriyor:** Windows 10 2004 ve üstü gerekir.
 
 ## Sınırlamalar
 
-Bu proje bir **karar destek ve araştırma prototipidir**. Güvenlik operatörünün yerine geçmez. Tespit kalitesi eğitim verisinin kapsadığı nesne türleri, görüntü rengi ve cihaz tipiyle sınırlıdır. Gerçek operasyonel kullanımdan önce kendi cihaz görüntülerinle ayrıca doğrulanmalıdır.
+Bu proje bir **karar destek ve araştırma prototipidir**; güvenlik görevlisinin yerine geçmez. Tespit kalitesi eğitim verisindeki nesne türleri, görüntü rengi ve cihaz tipiyle sınırlıdır. Gerçek kullanımdan önce kendi cihaz görüntülerinizle doğrulayın.
 
 ## Lisans
 
-MIT. Detay için [LICENSE](LICENSE).
+MIT. Ayrıntı: [LICENSE](LICENSE).
 
 ---
 
 <div align="center">
 
-Geliştirici: **Ahmet Koç** · [GitHub](https://github.com/ahmetkc58) · [LinkedIn](https://linkedin.com/in/ahmetkoc) · [kocengineer.com](https://kocengineer.com)
+Ekip projesi · Model ve ilk sürüm: [Ahmet Koç](https://github.com/ahmetkc58) ([kaynak repo](https://github.com/ahmetkc58/X-RAY-Tehlikeli-Madde-Algilama)) · Arayüz ve 2.0 sürümü: [rose-omer](https://github.com/rose-omer)
 
 </div>

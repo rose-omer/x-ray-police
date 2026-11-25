@@ -1,11 +1,12 @@
-# Minimal Python package requirements for xray-detect.py
-# Adjust versions as needed for your environment / GPU support
-opencv-python>=4.5.5
-numpy<2
-mss>=6.1.0
-ultralytics>=8.0.0
+# X-Ray Polisi bağımlılıkları (Python 3.10–3.12)
+# GPU için PyTorch'u ÖNCE ayrıca kurun (README > Kurulum). Bu dosya torch'u CPU sürümüyle getirir.
+torch>=2.0
+ultralytics>=8.3,<9
+lap>=0.5.12            # ultralytics takipçisi; yoksa ilk açılışta internetten kurmaya çalışır
+opencv-python>=4.8
+numpy>=1.26
+mss>=9.0
 PyQt6>=6.5
-torch>=2.0.0
 
-# Optional (use if needed/desired):
-# torchvision>=0.15.0
+# Geliştirme
+pytest>=8
