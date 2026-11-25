@@ -6,7 +6,7 @@ X-ray cihazının ekranını okuyup bagajdaki tehlikeli nesneleri işaretleyen b
 YOLOv8 ile 12 sınıf tanır: silah, mermi, bıçak, cop, kelepçe, makas, çekiç, sprey, çakmak, İngiliz anahtarı,
 pense ve powerbank. Cihaza bağlanmaz; ekranın üstüne saydam bir katman çizer.
 
-Ekip projesi. Modeli ve ilk sürümü [Ahmet Koç](https://github.com/ahmetkc58) geliştirdi
+Ekip projesi. 
 ([ilk repo](https://github.com/ahmetkc58/X-RAY-Tehlikeli-Madde-Algilama)).
 
 ## Tanıtım
