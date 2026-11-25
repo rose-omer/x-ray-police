@@ -26,6 +26,7 @@ DEDUP_TTL_S = 10.0             # Nesne bu süre görünmezse unutulur
 
 # --- Arayüz ---
 PANEL_WIDTH = 380              # Mantıksal piksel (Windows ölçeğinden bağımsız)
+PANEL_SIDE = "left"            # "left" | "right"
 MAX_FEED_ITEMS = 150           # Panelde tutulan en çok kart
 BEEP_COOLDOWN_S = 1.5
 
@@ -55,7 +56,7 @@ CLASSES: dict[str, ClassInfo] = {
     "Powerbank": ClassInfo("Powerbank", "low"),
 }
 
-SEVERITY_COLORS = {"high": "#ef4444", "medium": "#f59e0b", "low": "#38bdf8"}
+SEVERITY_COLORS = {"high": "#ef4444", "medium": "#f59e0b", "low": "#3b82f6"}
 SEVERITY_LABELS = {"high": "YÜKSEK", "medium": "ORTA", "low": "DÜŞÜK"}
 
 

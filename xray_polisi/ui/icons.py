@@ -81,8 +81,8 @@ def power(color: str) -> QIcon:
     return _icon(draw, color)
 
 
-def shield(color: str, size: int = 22) -> QPixmap:
-    """Logo: kalkan + ortada tarama çizgisi."""
+def shield(color: str, size: int = 22, line: str = "#ffffff") -> QPixmap:
+    """Logo: polis rozeti gibi kalkan + tarama çizgileri."""
     pm = QPixmap(SIZE, SIZE)
     pm.fill(Qt.GlobalColor.transparent)
     p = QPainter(pm)
@@ -95,7 +95,7 @@ def shield(color: str, size: int = 22) -> QPixmap:
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(QColor(color))
     p.drawPath(path)
-    pen = QPen(QColor("#111111"), 5)
+    pen = QPen(QColor(line), 5)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     p.setPen(pen)
     p.drawLine(19, 32, 45, 32)

@@ -22,13 +22,6 @@ def _restyle(widget: QWidget) -> None:
     widget.style().polish(widget)
 
 
-def _rgba(hex_color: str, alpha: float) -> str:
-    """'#rrggbb' -> 'rgba(r,g,b,a)'. Qt 8 haneli hex'i #AARRGGBB okur; bu yüzden rgba."""
-    c = hex_color.lstrip("#")
-    r, g, b = (int(c[i:i + 2], 16) for i in (0, 2, 4))
-    return f"rgba({r},{g},{b},{alpha})"
-
-
 def _to_pixmap(bgr: np.ndarray, size: int) -> QPixmap:
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     h, w, _ = rgb.shape
@@ -57,8 +50,8 @@ class AlertCard(QFrame):
 
         stripe = QFrame()
         stripe.setFixedWidth(4)
-        stripe.setStyleSheet(f"background:{color}; border-top-left-radius:10px;"
-                             "border-bottom-left-radius:10px;")
+        stripe.setStyleSheet(f"background:{color}; border-top-left-radius:6px;"
+                             "border-bottom-left-radius:6px;")
         row.addWidget(stripe)
 
         thumb = QLabel()
@@ -79,7 +72,7 @@ class AlertCard(QFrame):
         title.setObjectName("cardTitle")
         chip = QLabel(config.SEVERITY_LABELS[info.severity])
         chip.setObjectName("chip")
-        chip.setStyleSheet(f"color:{color}; background: {_rgba(color, 0.16)};")
+        chip.setStyleSheet(f"color:{color}; background: {theme.rgba(color, 0.18)};")
         top.addWidget(title)
         top.addStretch()
         top.addWidget(chip)
@@ -162,6 +155,7 @@ class Panel(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
+        root.addLayout(self._build_siren())
         root.addWidget(self._build_header())
 
         body = QVBoxLayout()
@@ -180,6 +174,29 @@ class Panel(QWidget):
         self.set_state("loading", "MODEL YÜKLENİYOR")
 
     # ------------------------------------------------------- yapı
+    def _build_siren(self) -> QHBoxLayout:
+        """Üstte mavi-kırmızı siren şeridi; yüksek önemli alarmda yanıp söner."""
+        row = QHBoxLayout()
+        row.setSpacing(0)
+        self.siren = (QFrame(), QFrame())
+        for part, name in zip(self.siren, ("sirenBlue", "sirenRed")):
+            part.setObjectName(name)
+            part.setFixedHeight(5)
+            row.addWidget(part, 1)
+        self._siren_ticks = 0
+        self._siren_timer = QTimer(self, interval=220, timeout=self._siren_step)
+        return row
+
+    def _siren_step(self) -> None:
+        self._siren_ticks -= 1
+        swap = self._siren_ticks % 2 == 1 and self._siren_ticks > 0
+        self.siren[0].setObjectName("sirenRed" if swap else "sirenBlue")
+        self.siren[1].setObjectName("sirenBlue" if swap else "sirenRed")
+        for part in self.siren:
+            _restyle(part)
+        if self._siren_ticks <= 0:
+            self._siren_timer.stop()
+
     def _build_header(self) -> QFrame:
         header = QFrame()
         header.setObjectName("header")
@@ -189,7 +206,7 @@ class Panel(QWidget):
         logo = QLabel()
         logo.setObjectName("logo")
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo.setPixmap(icons.shield(theme.ACCENT, 34))
+        logo.setPixmap(icons.shield(theme.POLICE_BLUE, 38))
         names = QVBoxLayout()
         names.setSpacing(0)
         brand = QLabel("X-Ray Polisi")
@@ -249,7 +266,7 @@ class Panel(QWidget):
 
         buttons = QHBoxLayout()
         buttons.setSpacing(8)
-        self.btn_pause = QPushButton(icons.pause("#111111"), "  Duraklat")
+        self.btn_pause = QPushButton(icons.pause("#ffffff"), "  Duraklat")
         self.btn_pause.setObjectName("primary")
         self.btn_pause.setToolTip("Taramayı duraklat / sürdür (Ctrl+P)")
         self.btn_pause.clicked.connect(self.toggle_pause)
@@ -360,7 +377,7 @@ class Panel(QWidget):
         folder = QPushButton(icons.folder(theme.TEXT), "  Kayıt klasörü")
         folder.setToolTip(str(config.LOG_DIR))
         folder.clicked.connect(self._open_logs)
-        quit_btn = QPushButton(icons.power(theme.DANGER), "  Çıkış")
+        quit_btn = QPushButton(icons.power("#ff6b6b"), "  Çıkış")
         quit_btn.setObjectName("danger")
         quit_btn.setToolTip("Uygulamayı kapat (Ctrl+Q)")
         quit_btn.clicked.connect(self.quit_requested)
@@ -403,7 +420,7 @@ class Panel(QWidget):
     def toggle_pause(self) -> None:
         self._paused = not self._paused
         self.btn_pause.setText("  Sürdür" if self._paused else "  Duraklat")
-        self.btn_pause.setIcon(icons.play("#111111") if self._paused else icons.pause("#111111"))
+        self.btn_pause.setIcon(icons.play("#ffffff") if self._paused else icons.pause("#ffffff"))
         self.btn_pause.setProperty("paused", self._paused)
         _restyle(self.btn_pause)
         self.set_state("paused" if self._paused else "active",
@@ -464,6 +481,9 @@ class Panel(QWidget):
                                 f"  ·  {alert.when.strftime('%H:%M:%S')}")
         self.banner.show()
         self._banner_timer.start(4000)
+        if info.severity == "high":
+            self._siren_ticks = 14
+            self._siren_timer.start()
 
     def clear_feed(self) -> None:
         while self.feed.count() > 1:

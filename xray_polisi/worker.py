@@ -125,7 +125,7 @@ class DetectorWorker(QThread):
                                           half=device != "cpu", device=device, verbose=False)
                     latency = (time.perf_counter() - t_inf) * 1000
                     detections = self._handle(results[0], frame, model.names)
-                except Exception as exc:  # kilit ekranı, UAC, sürücü hatası...
+                except Exception:  # kilit ekranı, UAC, sürücü hatası...
                     errors += 1
                     wait = min(config.MAX_ERROR_BACKOFF_MS, 200 * errors)
                     if errors == 1 or errors % 25 == 0:

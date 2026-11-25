@@ -92,13 +92,15 @@ class Controller:
     def _full_region(self) -> dict[str, int]:
         """Panel hariç tüm ekran (fiziksel)."""
         m = self.smap
-        return m.to_physical(m.log_x, m.log_y, m.log_w - config.PANEL_WIDTH, m.log_h)
+        x = m.log_x + config.PANEL_WIDTH if config.PANEL_SIDE == "left" else m.log_x
+        return m.to_physical(x, m.log_y, m.log_w - config.PANEL_WIDTH, m.log_h)
 
     def _place_windows(self) -> None:
         screen = self.screens[self.screen_idx]
         avail = screen.availableGeometry()
-        self.panel.setGeometry(avail.right() - config.PANEL_WIDTH + 1, avail.top(),
-                               config.PANEL_WIDTH, avail.height())
+        x = (avail.left() if config.PANEL_SIDE == "left"
+             else avail.right() - config.PANEL_WIDTH + 1)
+        self.panel.setGeometry(x, avail.top(), config.PANEL_WIDTH, avail.height())
         self.overlay.set_screen(self.smap, self.region)
 
     def _connect(self) -> None:

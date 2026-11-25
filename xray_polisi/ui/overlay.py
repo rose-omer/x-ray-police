@@ -4,7 +4,7 @@ from __future__ import annotations
 import time
 
 from PyQt6.QtCore import QRectF, Qt, QTimer
-from PyQt6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen
+from PyQt6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
 from .. import config
@@ -106,44 +106,27 @@ class Overlay(QWidget):
         p.drawText(tag, Qt.AlignmentFlag.AlignCenter, text)
 
     def _paint_box(self, p: QPainter, rect: QRectF, cls: str, conf: float, alert_id: int) -> None:
+        """Tam çerçeve + üst kenara yapışık etiket."""
         info = config.class_info(cls)
         color = QColor(config.SEVERITY_COLORS[info.severity])
-
-        # İnce çerçeve + kalın köşeler
-        fill = QColor(color)
-        fill.setAlpha(28)
-        p.setBrush(fill)
-        edge = QColor(color)
-        edge.setAlpha(200)
-        p.setPen(QPen(edge, 1.5))
-        p.drawRoundedRect(rect, 3, 3)
-
-        corner = QPen(color, 4)
-        corner.setCapStyle(Qt.PenCapStyle.RoundCap)
-        p.setPen(corner)
-        arm = max(8.0, min(18.0, rect.width() / 4, rect.height() / 4))
-        path = QPainterPath()
-        for cx, cy, dx, dy in ((rect.left(), rect.top(), 1, 1), (rect.right(), rect.top(), -1, 1),
-                               (rect.left(), rect.bottom(), 1, -1),
-                               (rect.right(), rect.bottom(), -1, -1)):
-            path.moveTo(cx + dx * arm, cy)
-            path.lineTo(cx, cy)
-            path.lineTo(cx, cy + dy * arm)
+        pen = QPen(color, 2.5)
+        pen.setJoinStyle(Qt.PenJoinStyle.MiterJoin)
+        p.setPen(pen)
         p.setBrush(Qt.BrushStyle.NoBrush)
-        p.drawPath(path)
+        p.drawRect(rect)
 
-        # Etiket: kutunun üstünde; yer yoksa içinde
-        label = f"{config.tr_upper(info.tr)}   %{conf * 100:.0f}   #{alert_id:04d}"
+        # Etiket kutunun sol üstünde, çerçeveye yapışık; yer yoksa kutunun içinde
+        label = f"{config.tr_upper(info.tr)}  %{conf * 100:.0f}  #{alert_id:04d}"
         p.setFont(self._font)
         fm = QFontMetrics(self._font)
-        lw, lh = fm.horizontalAdvance(label) + 16, fm.height() + 8
-        lx = min(max(0.0, rect.left()), self.width() - lw)
-        ly = rect.top() - lh - 3
+        lw, lh = fm.horizontalAdvance(label) + 16, fm.height() + 6
+        lx = min(max(0.0, rect.left() - 1.25), self.width() - lw)
+        ly = rect.top() - lh
         if ly < 0:
-            ly = rect.top() + 3
+            ly = rect.top()
         tag = QRectF(lx, ly, lw, lh)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(color)
-        p.drawRoundedRect(tag, 5, 5)
-        p.setPen(QColor("#111111") if info.severity != "high" else QColor("#ffffff"))
+        p.drawRect(tag)
+        p.setPen(QColor("#111111") if info.severity == "medium" else QColor("#ffffff"))
         p.drawText(tag, Qt.AlignmentFlag.AlignCenter, label)

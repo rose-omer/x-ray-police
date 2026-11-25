@@ -12,7 +12,7 @@
 
 <img src="assets/arayuz.jpg" alt="X-Ray Polisi arayüzü" width="820">
 
-<sub>Panel sağda; tarama alanındaki silah kırmızı kutuyla işaretli. İlk sürümün demosu: <a href="assets/demo.gif">GIF</a> · <a href="model_%C3%A7%C4%B1kt%C4%B1s%C4%B1.mp4">MP4</a></sub>
+<sub>Panel solda; tarama alanındaki silah kırmızı çerçeve ve etiketle işaretli. İlk sürümün demosu: <a href="assets/demo.gif">GIF</a> · <a href="model_%C3%A7%C4%B1kt%C4%B1s%C4%B1.mp4">MP4</a></sub>
 
 </div>
 
@@ -23,7 +23,8 @@
 X-ray cihazının görüntüsü başka bir yazılımda açık olsa bile X-Ray Polisi ekranı yakalar, YOLOv8 ile analiz eder ve sonucu ekranın üstüne saydam bir katman olarak çizer. Cihaza ya da yazılıma entegrasyon gerekmez.
 
 - 🎯 **12 sınıf:** Silah, Mermi, Bıçak, Cop, Kelepçe, Makas, Çekiç, Sprey, Çakmak, İngiliz anahtarı, Pense, Powerbank.
-- 🚦 **Önem derecesi:** yüksek (kırmızı), orta (turuncu), düşük (mavi). Kutu, kart ve alarm rengi buna göre değişir.
+- 🚦 **Önem derecesi:** yüksek (kırmızı), orta (turuncu), düşük (mavi). Kutu, kart ve alarm rengi buna göre değişir; yüksek alarmda siren şeridi yanıp söner.
+- 🚔 **Polis merkezi teması:** lacivert zemin, siren mavisi ve alarm kırmızısı.
 - 🔁 **Tek nesne, tek alarm:** takipçi nesneyi kaybedip yeni ID verse de aynı nesne yeniden alarm üretmez.
 - ⌖ **Tarama alanı seçimi:** yalnız X-ray görüntüsünü tarar; diğer pencereler yanlış alarm üretmez.
 - 🗂️ **Canlı akış:** her yeni tespit kırpılmış görüntü, güven skoru ve saatle panele düşer. Karta tıklayınca kanıt açılır.
@@ -88,7 +89,7 @@ python -c "import torch; print(torch.cuda.is_available())"
 python xray-detect.py
 ```
 
-1. Panel ekranın sağına yerleşir. Model yüklenince durum **AKTİF** olur.
+1. Panel ekranın soluna yerleşir. Model yüklenince durum **AKTİF** olur.
 2. **Alan seç** ile yalnız X-ray görüntüsünü çizin. **⛶** tüm ekrana döner.
 3. Tespitler ekranda kutu, panelde kart olarak görünür.
 
@@ -111,6 +112,7 @@ Panelden değişen ayarlar (ekran, güven eşiği, girdi boyutu, ses) bir sonrak
 | `IMG_SIZE` | `1280` | Model 640 ile eğitildi; 1280 küçük nesnede daha çok buluyor ama daha yavaş |
 | `DEDUP_IOU` / `DEDUP_TTL_S` | `0.3` / `10` | Aynı nesne sayılma örtüşmesi ve unutma süresi |
 | `PANEL_WIDTH` | `380` | Panel genişliği (mantıksal px) |
+| `PANEL_SIDE` | `left` | Panelin yeri: `left` ya da `right` |
 | `MAX_FEED_ITEMS` | `150` | Panelde tutulan en çok kart |
 | `LOG_DIR` | `XRay_Ultra_Log` | Kanıt klasörü |
 
